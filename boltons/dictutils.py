@@ -892,7 +892,7 @@ class OneToOne(dict):
             for key, val in dict_or_iterable:
                 hash(key)
                 hash(val)
-                keys_vals = list(dict_or_iterable)
+                keys_vals.append((key, val))
         for val in kw.values():
             hash(val)
         keys_vals.extend(kw.items())
