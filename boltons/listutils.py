@@ -156,6 +156,9 @@ class BarrelList(list):
     def extend(self, iterable):
         self.lists[-1].extend(iterable)
 
+    def clear(self):
+        self.lists[:] = [[]]
+
     def pop(self, *a):
         lists = self.lists
         if len(lists) == 1 and not a:

@@ -1,5 +1,7 @@
 import sys
 
+import pytest
+
 from boltons.listutils import SplayList, BarrelList
 
 
@@ -240,3 +242,44 @@ def test_barrel_list_delete_to_end():
         del reference[10000:stop]
         del value[10000:stop]
         assert list(value) == reference
+
+
+@pytest.mark.parametrize('size', [0, 1, 30000])
+@pytest.mark.parametrize('empty_barrels', [False, True])
+def test_barrel_list_clear(size, empty_barrels):
+    value = BarrelList(range(size))
+    value._balance_list(0)
+    if empty_barrels:
+        value.lists.insert(0, [])
+        value.lists.append([])
+    reference = list(value)
+
+    assert value.clear() is reference.clear() is None
+    assert list(value) == reference
+    assert len(value) == 0
+    assert not value
+    assert list(reversed(value)) == []
+    assert value.clear() is None
+
+    value.append('after')
+    value.extend(['clear'])
+    value.insert(1, 'the')
+    assert list(value) == ['after', 'the', 'clear']
+    assert value.pop() == 'clear'
+
+
+def test_barrel_list_clear_releases_items():
+    import gc
+    import weakref
+
+    class Item:
+        pass
+
+    value = BarrelList([Item(), Item()])
+    value.lists = [[item] for item in value]
+    refs = [weakref.ref(item) for item in value]
+
+    value.clear()
+    gc.collect()
+
+    assert all(ref() is None for ref in refs)
